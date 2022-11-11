@@ -10,9 +10,9 @@ import SwiftUI
 struct ContentView: View {
     
     @State var currencyCode: String? = "SEK"
-    @State var currencyRate: Double? = 0
+    @State var currencyRate: Double? = .zero
     @State private var valueInPLN: Double = 1
-    @State private var outputValue: Double = 0
+    @State private var outputValue: Double = .zero
     
     var body: some View {
         NavigationView {
@@ -24,7 +24,7 @@ struct ContentView: View {
                             .frame(width: Constants.textFieldWidth)
                             .onChange(of: valueInPLN) { newValue in
                                 DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
-                                    countOutputValue(valueInPLN: newValue)}}
+                                    countFromPLNToSelectedCurrency(valueInPLN: newValue)}}
                         Text("PLN")
                     }
                     VStack {
@@ -41,25 +41,25 @@ struct ContentView: View {
                 .onChange(of: currencyCode) { newValue in
                     fetchSpecificCurrency(rateCode: currencyCode!)
                     DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
-                        countOutputValue(valueInPLN: valueInPLN)}}
+                        countFromPLNToSelectedCurrency(valueInPLN: valueInPLN)}}
             }
         }
         .onAppear() {
             fetchSpecificCurrency(rateCode: currencyCode!)
             DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay) {
-                countOutputValue(valueInPLN: valueInPLN)}
+                countFromPLNToSelectedCurrency(valueInPLN: valueInPLN)}
         }
     }
     
-    func countOutputValue(valueInPLN: Double) {
-        outputValue = valueInPLN * (currencyRate ?? 0)
+    func countFromPLNToSelectedCurrency(valueInPLN: Double) {
+        outputValue = valueInPLN / (currencyRate ?? 1)
     }
     
     func fetchSpecificCurrency(rateCode: String) {
         let url = "https://api.nbp.pl/api/exchangerates/rates/a/\(rateCode)/?format=json"
         NetworkController.fetchData(url: url, dataType: SpecificCurrency.self) { currencyRate in
             DispatchQueue.main.async {
-                self.currencyRate = currencyRate.rates.first?.mid ?? 0
+                self.currencyRate = currencyRate.rates.first?.mid ?? .zero
             }}
     }
     
