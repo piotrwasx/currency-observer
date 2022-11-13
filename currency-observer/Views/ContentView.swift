@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @Environment(\.colorScheme) var colorScheme
+    
     @State var selectedCurrencyCode: String? = nil
     @State var valueOfOnePLNInSelectedCurrency: Double? = nil
     
@@ -21,42 +23,79 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                Button("odwróć") {
-                    let temp = leftCurrencyCode
-                    leftCurrencyCode = rightCurrencyCode
-                    rightCurrencyCode = temp
-                }
-                HStack {
-                    VStack {
-                        TextField(leftCurrencyCode, value: $leftCurrencyValue, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: Constants.textFieldWidth)
-                            .onChange(of: leftCurrencyValue) { newValue in
-                                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
-                                    countCurrencyExchange()}}
-                        Text(leftCurrencyCode)
+                Color.secondary
+                    .frame(width: UIScreen.main.bounds.width - 20,
+                           height: Constants.boxHeight)
+                    .mask {
+                        RoundedRectangle(cornerSize: Constants.boxCornerSize)
+                            .stroke(style: StrokeStyle())
                     }
-                    VStack {
-                        TextField("", value: $outputValue, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: Constants.textFieldWidth)
-                        Text(rightCurrencyCode)
+                    .overlay {
+                        HStack {
+                            VStack {
+                                TextField("Type value here", value: $leftCurrencyValue, format: .number)
+                                    .keyboardType(.numberPad)
+                                    .frame(maxWidth: UIScreen.main.bounds.width - 45)
+                                    .font(.system(size: 42))
+                                    .fontWeight(.semibold)
+                                    .onChange(of: leftCurrencyValue) { newValue in
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
+                                            countCurrencyExchange()}}
+                                Text(leftCurrencyCode)
+                                
+                                Color.secondary
+                                    .frame(width: Constants.switchButtonWidth, height: Constants.switchButtonHeight)
+                                    .padding()
+                                    .mask {
+                                        RoundedRectangle(cornerSize: Constants.switchButtonCornerSize)
+                                            .stroke(style: StrokeStyle())
+                                            .frame(width: Constants.switchButtonWidth - 10, height: Constants.switchButtonHeight - 10)
+                                    }
+                                    .overlay {
+                                        Button(action: {
+                                            withAnimation {
+                                                let temp = leftCurrencyCode
+                                                leftCurrencyCode = rightCurrencyCode
+                                                rightCurrencyCode = temp
+                                            }
+                                        }, label: {
+                                            Image(systemName: "arrow.2.squarepath")
+                                                .foregroundColor(Color.primary)
+                                        })
+                                    }
+                                
+                                Text("\(outputValue, specifier: "%.2f")")
+                                    .font(.system(size: 42))
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: UIScreen.main.bounds.width - 40, maxHeight: Constants.outputBoxMaxHeight)
+                                Text(rightCurrencyCode)
+                            }
+                            .multilineTextAlignment(.center)
+                        }
                     }
-                }
-                
-                NavigationLink(destination: CurrencyListView(rateCode: $selectedCurrencyCode)) {
-                    Text("zmień walutę")
-                }
-                .onChange(of: rightCurrencyCode) { newValue in
-                    fetchSpecificCurrency(currencyCode: selectedCurrencyCode ?? rightCurrencyCode)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
-                        countCurrencyExchange()}
-                }
-                .onChange(of: selectedCurrencyCode) { newValue in
-                    rightCurrencyCode = selectedCurrencyCode!
-                    leftCurrencyCode = Constants.mainCurrency
-                    leftCurrencyValue = 1
-                }
+                Color.secondary
+                    .frame(width: Constants.changeCurrencyButtonWidth, height: Constants.changeCurrencyButtonHeight)
+                    .mask {
+                        RoundedRectangle(cornerSize: Constants.changeCurrencyButtonCornerSize)
+                            .stroke(style: StrokeStyle())
+                            .frame(width: Constants.changeCurrencyButtonWidth, height: Constants.changeCurrencyButtonHeight - 10)
+                    }
+                    .overlay {
+                        NavigationLink(destination: CurrencyListView(rateCode: $selectedCurrencyCode)) {
+                            Text("change currency")
+                                .foregroundColor(Color.primary)
+                        }
+                        .onChange(of: rightCurrencyCode) { newValue in
+                            fetchSpecificCurrency(currencyCode: selectedCurrencyCode ?? rightCurrencyCode)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay_small) {
+                                countCurrencyExchange()}
+                        }
+                        .onChange(of: selectedCurrencyCode) { newValue in
+                            rightCurrencyCode = selectedCurrencyCode!
+                            leftCurrencyCode = Constants.mainCurrency
+                            leftCurrencyValue = 1
+                        }
+                    }
             }
         }
         .onAppear() {
@@ -64,6 +103,7 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + Constants.delay) {
                 countCurrencyExchange()}
         }
+        .accentColor(colorScheme == .dark ? Color.white : Color.black)
     }
     
     func countCurrencyExchange() {
@@ -100,4 +140,18 @@ private enum Constants {
     static let textFieldWidth: CGFloat = 150
     
     static let deafultValue: Double = 1
+    
+    static let boxHeight: CGFloat = 450
+    static let boxCornerSize = CGSize(width: 80, height: 80)
+    
+    static let switchButtonWidth: CGFloat = 70
+    static let switchButtonHeight: CGFloat = 60
+    static let switchButtonCornerSize = CGSize(width: 120, height: 120)
+    
+    static let outputBoxMaxHeight: CGFloat = 40
+    
+    static let changeCurrencyButtonWidth: CGFloat = 160
+    static let changeCurrencyButtonHeight: CGFloat = 60
+    
+    static let changeCurrencyButtonCornerSize = CGSize(width: 120, height: 120)
 }

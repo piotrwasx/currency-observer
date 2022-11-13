@@ -22,7 +22,7 @@ struct CurrencyListView: View {
                         }
                     }
                 }
-                .navigationTitle("Waluty")
+                .navigationTitle("Currencies")
             }
         }
     }
